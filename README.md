@@ -2,7 +2,9 @@
 
 ## Spatial transcriptomics NextFlow pipelines
 
-SpatialNF is a collection of Nextflow DSL2 pipelines for analyzing spatial transcriptomics data. We offer pipelines for:
+SpatialNF is a collection of Nextflow DSL2 pipelines for analyzing spatial transcriptomics data.
+
+We offer pipelines for:
 - basic processing of spatial transcriptomics data
 - identification of spatially variable genes
 - segmentation-free analysis
@@ -12,7 +14,7 @@ SpatialNF is implemented in the VSN-framework: https://github.com/vib-singlecell
 
 ### Supported data
 
-SpatialNF can be used for FISH-based data like MERFISH or Molecular cartography and sequencing-based data like 10X Visium. As we currently, do not offer automated segmentation pipelines within SpatialNF, FISH-based data has to be segmented in advance and converted into a supported data format.
+SpatialNF can be used for FISH-based data like MERFISH or Molecular cartography and sequencing-based data like 10X Visium. As we currently do not offer automated segmentation pipelines within SpatialNF, FISH-based data has to be segmented in advance and converted into a supported data format.
 
 For all data types, input data should contain raw counts. SpatialNF supports the following data formats:
 
@@ -93,7 +95,7 @@ The reference scRNAseq data should be a processed and filtered AnnData object `.
 
 ### Running SpatialNF pipelines
 
-Initial configs can be generated with a `nextflow config` command. See the `SpatialNF/examples' folder for pipeline configuration files.
+Initial configs can be generated with a `nextflow config` command. See the `SpatialNF/examples` folder for pipeline configuration files.
 For example, to generate a config for mouse 10X spaceranger data and the `single_sample_spatialde` workflow:
 
 ```
@@ -122,7 +124,7 @@ Reports are stored as Jupyter notebooks and HTML files in `out/notebooks/`.
 ### Resource management
 
 SpatialNF pipelines can be run locally or each step can be seperately submitted to as a job to a HPC.
-Resource limits and parameters can be specified in the `process` section of config file.
+Resource limits and parameters can be specified in the `process` section of a config file.
 
 
 ### Prerequisites
@@ -132,26 +134,32 @@ SpatialNF currently only supports Nextflow version 21.04.3.
 
 ## References
 
-All pipelines are using SCANPY: 
+All pipelines are using SCANPY:
+
 _Wolf, Angerer, & Theis (2018). SCANPY: large-scale single-cell gene expression data analysis. Genome Biol., 19:1-5._
 https://github.com/scverse/scanpy
 
 SpatialDE:
+
 _Svensson Teichmann & Stegle (2018). SpatialDE: identification of spatially variable genes. Nat. Methods, 15:343-346)_
 https://github.com/Teichlab/SpatialDE
 
 Tangram:
+
 _Biancalani, Scalia, Buffoni, Avasthi, Lu, Sanger, ... & Regev (2021). Deep learning and alignment of spatially resolved single-cell transcriptomes with Tangram. Nat. Methods, 18:1352-1362._
 https://github.com/broadinstitute/Tangram
 
 SpaGE:
+
 _Abdelaal, Mourragui, Mahfouz, & Reinders (2020). SpaGE: spatial gene enhancement using scRNA-seq. Nucleic Acids Res., 48:e107-e107._
 https://github.com/tabdelaal/SpaGE
 
 spage2vec:
+
 _Partel & Waehlby (2021). Spage2vec: Unsupervised representation of localized spatial gene expression signatures. FEBS J., 288:1859-1870._
 https://github.com/wahlby-lab/spage2vec
 
 Squidpy:
+
 _Palla, Spitzer, Klein, Fischer, Schaar, Kuemmerle, ... & Theis (2022). Squidpy: a scalable framework for spatial omics analysis. Nat. Methods, 19:171-178._
 https://github.com/scverse/squidpy
