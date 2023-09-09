@@ -81,7 +81,7 @@ In addition, for segmentation-free label-transfer, SpatialNF contains a spage2ve
 Optionally, Squidpy can be used for computing enrichments of co-localized labels.
 And Tangram can also be used to project gene expression from single cell data which will overwrite the count matrix.
 
-The reference scRNAseq data should be a processed and filtered AnnData object `.h5ad` and contain raw counts, as well as the annotation as `obs` file.
+The reference scRNAseq data should be a processed and filtered AnnData object `.h5ad` and contain raw counts, as well as the annotation as `obs` entry.
 
 | Pipeline / entry point  | Description |
 | ------------- | ------------- |
