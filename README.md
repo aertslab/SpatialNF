@@ -69,7 +69,7 @@ For detecting spatially variable genes, we implemented a pipeline using SpatialD
 
 | Pipeline / entry point  | Description |
 | ------------- | ------------- |
-| single_sample_spatialde | Run `single_sample` pipeline and identify spatially variable genes and spatial patterns |
+| [single_sample_spatialde](https://github.com/aertslab/SpatialNF/examples/spatialde) | Run `single_sample` pipeline and identify spatially variable genes and spatial patterns |
 | multi_sample_spatialde | Run `multiple_sample` pipeline and identify spatially variable genes and spatial patterns |
 | spatialde | Only run SpatialDE pipeline; input should be an AnnData object created by SpatialNF |
 
@@ -90,7 +90,7 @@ The reference scRNAseq data should be a processed and filtered AnnData object `.
 | tangram | Only run Tangram pipeline; input should be an AnnData object created by SpatialNF |
 | single_sample_spage | Run `single_sample` pipeline and SpaGE for label-transfer. |
 | multi_sample_spage | Run `multiple_sample` pipeline and and SpaGE for label-transfer. |
-| spage2vec_spage_label_transfer | Perform neighborhood embedding analysis and lebel transfer with spage2vec. |
+| spage2vec_spage_label_transfer | Perform neighborhood embedding analysis and label transfer with spage2vec. |
 
 
 ### Running SpatialNF pipelines
@@ -129,7 +129,7 @@ Resource limits and parameters can be specified in the `process` section of a co
 
 ### Prerequisites
 
-SpatialNF currently only supports Nextflow version 21.04.3.
+SpatialNF requires a [Singularity](https://docs.sylabs.io/guides/2.6/user-guide/singularity_and_docker.html) to run Docker containers and [Nextflow](https://www.nextflow.io/). Currently, only support Nextflow version 21.04 is supported. A compatible Netxtflow binary can be downloaded here: https://github.com/nextflow-io/nextflow/releases/download/v21.04.0/nextflow-21.04.0-all 
 
 
 ## References
