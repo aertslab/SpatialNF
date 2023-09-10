@@ -120,9 +120,10 @@ parser.add_argument(
 parser.add_argument(
     '-d',
     '--device',
-    default='0',
-    help="Device used for computing cell type mapping, e.g. 'cpu' for CPU, '0' for 'cuda: 0', ... for GPU (default: '%(default)s')" 
+    default='any',
+    help="Device used for computing cell type mapping, e.g. 'cpu' for CPU, '0' for 'cuda: 0', ..., 'any' for GPU (default: '%(default)s')" 
 )
+
 
 parser.add_argument(
     '-a',
