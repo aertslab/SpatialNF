@@ -129,7 +129,7 @@ Resource limits and parameters can be specified in the `process` section of a co
 
 ### Prerequisites
 
-SpatialNF requires a [Singularity](https://docs.sylabs.io/guides/2.6/user-guide/singularity_and_docker.html) to run Docker containers and [Nextflow](https://www.nextflow.io/). Currently, only support Nextflow version 21.04 is supported. A compatible Netxtflow binary can be downloaded here: https://github.com/nextflow-io/nextflow/releases/download/v21.04.0/nextflow-21.04.0-all 
+SpatialNF requires a [Singularity](https://docs.sylabs.io/guides/2.6/user-guide/singularity_and_docker.html) to run Docker containers and [Nextflow](https://www.nextflow.io/). Currently, only Nextflow version 21.04 is supported. A compatible Netxtflow binary can be downloaded here: https://github.com/nextflow-io/nextflow/releases/download/v21.04.0/nextflow-21.04.0-all 
 
 
 ## References

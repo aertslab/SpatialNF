@@ -7,21 +7,21 @@ As an example, we provide a config file `single_sample_spatialde_aeh.config` for
 A config file for a  single sample spatialDE workflow for input as CSV files can be generated with following command:
 
 ```
-Nextflow config SpatialNF/main.nf -profile mm10,singularity,spatial_csv,single_sample,spatialde > single_sample_spatialde_aeh.config
+nextflow config SpatialNF/main.nf -profile mm10,singularity,spatial_csv,single_sample,spatialde > single_sample_spatialde_aeh.config
 ```
 where `SpatialNF` is the path to the SpatialNF parent directory. This config file should be adjusted to contain the path to the data and proper parameters.
 
 
 #### input data
 
-The input data is specified in the `data` section. In this case CSV files:
+The input data is specified in the `data` section. In this case, we use CSV files as input:
 
 ```
    data {
       spatial_csv = '/lustre1/project/stg_00002/lcb/nhecker/software/git/SpatialNF/examples/data/mouse_cortex_molecular_cartography/*/outs'
    }
 ```
-where `*` is a wildcard to use all three subfolders; one subfolder per sample.
+where `*` is a wildcard to use all three subfolders; one subfolder per sample. Always use full file paths in order to allow singularity to find them.
 
 The `data` parameters are specific to the input data type. For 10X spaceranger output as input data, use a `spaceranger_visium` entry:
 
@@ -102,6 +102,15 @@ AEH is based on a length scale `l`. This length scale can be set manually or aut
 The number of patterns to find is defined by `c = 5`. 
 
 For more details see: https://github.com/Teichlab/SpatialDE
+
+#### Running SpatialDE workflow
+
+After adjusting the config file, following command can be used to execute the workflow:
+
+```
+nextflow -C single_sample_spatialde_aeh.config run SpatialNF/main.nf -entry single_sample_spatialde -resume -with-report
+```
+
 
 #### Output
 
