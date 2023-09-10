@@ -69,7 +69,7 @@ For detecting spatially variable genes, we implemented a pipeline using SpatialD
 
 | Pipeline / entry point  | Description |
 | ------------- | ------------- |
-| [single_sample_spatialde](https://github.com/aertslab/SpatialNF/examples/spatialde) | Run `single_sample` pipeline and identify spatially variable genes and spatial patterns |
+| [single_sample_spatialde](https://github.com/aertslab/SpatialNF/tree/main/examples/spatialde) | Run `single_sample` pipeline and identify spatially variable genes and spatial patterns |
 | multi_sample_spatialde | Run `multiple_sample` pipeline and identify spatially variable genes and spatial patterns |
 | spatialde | Only run SpatialDE pipeline; input should be an AnnData object created by SpatialNF |
 
