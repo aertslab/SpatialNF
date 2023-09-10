@@ -93,7 +93,7 @@ workflow COMBINE_BY_PARAMS {
 
 def setSeed(params) {
     if(!params.global.containsKey('seed')) {
-        params.global.seed = workflow.manifest.version.replaceAll("\\.","").toInteger()
+        params.global.seed = 42
 
         if(!params.containsKey('quiet')) {
             Channel.from('').view {

@@ -29,7 +29,7 @@ def resolveParams(Map params, boolean verbose) {
         return params
     if(params.strategy != "min")
         return params
-    def isRootDir = workflow.projectDir.getParent().getName() == "vib-singlecell-nf"
+    def isRootDir = workflow.projectDir.getParent().getName() == "SpatialNF"
     def config = new ConfigParser().setBinding([params: params])
     def co = new ConfigObject()
     co.putAll(params)
@@ -52,7 +52,7 @@ def resolveParams(Map params, boolean verbose) {
 
 def includeConfig(Map params, String configRelativeFilePath) {
     def repoFilePath = workflow.scriptFile.getParent()
-    def isMainRepo = repoFilePath.getName() == "vsn-pipelines"
+    def isMainRepo = repoFilePath.getName() == "SpatialNF"
     def config = new ConfigParser().setBinding([params: params])
     def co = new ConfigObject()
     def toolBaseDir = isMainRepo ? repoFilePath.toRealPath().toString() : repoFilePath.getParent().getParent().toRealPath().toString()
