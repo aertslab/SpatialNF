@@ -14,13 +14,13 @@ SpatialNF is implemented in the VSN-framework: https://github.com/vib-singlecell
 
 ### Supported data
 
-SpatialNF can be used for FISH-based data like MERFISH or Molecular cartography and sequencing-based data like 10X Visium. As we currently do not offer automated segmentation pipelines within SpatialNF, FISH-based data has to be segmented in advance and converted into a supported data format.
+SpatialNF can be used for FISH-based data like MERFISH or Molecular cartography and sequencing-based data like 10X Visium. As we do not offer automated segmentation pipelines within SpatialNF, FISH-based data has to be segmented in advance and converted into a supported data format.
 
 For all data types, input data should contain raw counts. SpatialNF supports the following data formats:
 
 | Data type  | Description |
 | ------------- | ------------- |
-| AnnData `.h5ad`  | AnnData object should contain an `.obsm` entry 'X_spatial' or 'Spatial' storing coordinates of segmented cells or spots. Currently, our Docker images only support anndata <= 0.78. |
+| AnnData `.h5ad`  | AnnData object should contain an `.obsm` entry 'X_spatial' or 'spatial' storing coordinates of segmented cells or spots. Currently, our Docker images only support anndata <= 0.78. |
 | 10X Spaceranger output | `outs` folder should contain the default 10X Spaceranger output |
 | CSV files | A folder containing a coordinate file`coords.csv` and a count matrix file `matrix.csv`|
 
@@ -85,7 +85,7 @@ The reference scRNAseq data should be a processed and filtered AnnData object `.
 
 | Pipeline / entry point  | Description |
 | ------------- | ------------- |
-| single_sample_tangram | Run `single_sample` pipeline and Tangram for label-transfer. |
+| [single_sample_tangram](https://github.com/aertslab/SpatialNF/tree/main/examples/spatialde) | Run `single_sample` pipeline and Tangram for label-transfer. |
 | multi_sample_tangram | Run `multiple_sample` pipeline and and Tangram for label-transfer. |
 | tangram | Only run Tangram pipeline; input should be an AnnData object created by SpatialNF |
 | single_sample_spage | Run `single_sample` pipeline and SpaGE for label-transfer. |
@@ -130,6 +130,10 @@ Resource limits and parameters can be specified in the `process` section of a co
 ### Prerequisites
 
 SpatialNF requires a [Singularity](https://docs.sylabs.io/guides/2.6/user-guide/singularity_and_docker.html) to run Docker containers and [Nextflow](https://www.nextflow.io/). Currently, only Nextflow version 21.04 is supported. A compatible Netxtflow binary can be downloaded here: https://github.com/nextflow-io/nextflow/releases/download/v21.04.0/nextflow-21.04.0-all 
+
+
+### Notes on Docker images
+We a currenty providing Docker images at Docker hub on a free license. In case these Docker images become unavailable in the future, they can be rebuild from the `Dockerfile` in the workflow specific subfolders in the `src` directory.
 
 
 ## References
