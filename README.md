@@ -85,7 +85,7 @@ The reference scRNAseq data should be a processed and filtered AnnData object `.
 
 | Pipeline / entry point  | Description |
 | ------------- | ------------- |
-| [single_sample_tangram](https://github.com/aertslab/SpatialNF/tree/main/examples/spatialde) | Run `single_sample` pipeline and Tangram for label-transfer. |
+| [single_sample_tangram](https://github.com/aertslab/SpatialNF/tree/main/examples/tangram) | Run `single_sample` pipeline and Tangram for label-transfer. |
 | multi_sample_tangram | Run `multiple_sample` pipeline and and Tangram for label-transfer. |
 | tangram | Only run Tangram pipeline; input should be an AnnData object created by SpatialNF |
 | single_sample_spage | Run `single_sample` pipeline and SpaGE for label-transfer. |
