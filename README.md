@@ -22,9 +22,10 @@ For all data types, input data should contain raw counts. SpatialNF supports the
 | ------------- | ------------- |
 | AnnData `.h5ad`  | AnnData object should contain an `.obsm` entry 'X_spatial' or 'spatial' storing coordinates of segmented cells or spots. Currently, our Docker images only support anndata <= 0.78. |
 | 10X Spaceranger output | `outs` folder should contain the default 10X Spaceranger output |
-| CSV files | A folder containing a coordinate file`coords.csv` and a count matrix file `matrix.csv`|
+| Spatial CSV files | A folder containing a coordinate file`coords.csv` and a count matrix file `matrix.csv`|
+| Coordinates CSV files | A CSV file contaning coordinates of each transcript per row |
 
-#### CSV file formats
+#### Spatial CSV file formats
 
 A coordinate CSV file `coords.csv` contains three columns: an ID for the `parent_cell`, `X` and  `Y` coordinates:
 
@@ -53,6 +54,23 @@ parent_cell,Act79B,Act88F,AkhR,AstC-R2,Awh,CCAP-R,CG32121,Cralbp,FASN2
 11,0,0,0,0,0,0,0,1,0
 ...
 ```
+
+#### Coordinates CSV file formats
+
+Coordinates CSV files contain the coordinates of each detected transcript per row. The should include a `header`, `x` and `y` columns.
+
+```
+gene,x,y
+Rora,755,935
+Rora,829,574
+Rora,1071,1941
+...
+Slc17a7,2110,1458
+Slc17a7,2110,1873
+Slc17a7,2111,302
+```
+Counts per gene will be collated in a grid. The bin size can be speficied with `binsize`.
+
 
 ### Pipelines for basic processing
 
@@ -129,11 +147,11 @@ Resource limits and parameters can be specified in the `process` section of a co
 
 ### Prerequisites
 
-SpatialNF requires a [Singularity](https://docs.sylabs.io/guides/2.6/user-guide/singularity_and_docker.html) to run Docker containers and [Nextflow](https://www.nextflow.io/). Currently, only Nextflow version 21.04 is supported. A compatible Netxtflow binary can be downloaded here: https://github.com/nextflow-io/nextflow/releases/download/v21.04.0/nextflow-21.04.0-all 
+SpatialNF requires [singularity](https://docs.sylabs.io/guides/2.6/user-guide/singularity_and_docker.html) to run Docker containers and [Nextflow](https://www.nextflow.io/). Currently, only Nextflow version 21.04 is supported. A compatible Netxtflow binary can be downloaded here: https://github.com/nextflow-io/nextflow/releases/download/v21.04.0/nextflow-21.04.0-all 
 
 
 ### Notes on Docker images
-We a currenty providing Docker images at Docker hub on a free license. In case these Docker images become unavailable in the future, they can be rebuild from the `Dockerfile` in the workflow specific subfolders in the `src` directory.
+We are currenty providing Docker images at Docker hub on a free license. In case these Docker images become unavailable in the future, they can be rebuild from the `Dockerfile` in the workflow specific subfolders in the `src` directory.
 
 
 ## References

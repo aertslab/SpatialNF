@@ -112,6 +112,7 @@ def runPythonConverter = {
             ${processParams?.remove10xGEMWell ? '--remove-10x-gem-well '+ processParams.remove10xGEMWell : ''} \
 	    ${processParams?.scaleSpatial ? '--scale-spatial '+ processParams.scaleSpatial : ''} \
             ${processParams?.useRaw ? '--use-raw '+ processParams.useRaw : ''} \
+	    ${processParams?.binsize ? '--binsize '+ processParams.binsize : ''} \
             --input-format $inputDataType \
             --output-format $outputDataType \
             ${f} \
@@ -240,6 +241,7 @@ process SC__FILE_CONVERTER {
                 // Nothing to be done here
             break;
             case "spatial_csv":
+	    case "coordinates_csv":
             case "csv":
             case "tsv":
             case "h5ad":

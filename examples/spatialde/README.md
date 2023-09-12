@@ -44,6 +44,19 @@ If the input data are already AnnData objects, following data entry can be used:
    }
 ```
 
+If the input data is given as individual transcripts, they will be binned in a grid. The bin size can be specified with `binsize`:
+
+```
+   data {
+      coordinates_csv {
+         file_paths = '/lustre1/project/stg_00002/lcb/nhecker/software/git/SpatialNF/examples/data/mouse_cortex_molecular_cartography/*/outs/*_coordinates.csv'
+         suffix = 'csv'
+      }
+      binsize = 200
+   }
+```
+
+
 Singularity parameters should be adjusted to contain the mount points where the data is stored:
 
 ```

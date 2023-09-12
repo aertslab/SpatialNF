@@ -206,6 +206,17 @@ workflow getDataChannel {
                 )
             }
         }
+	if(params.data.containsKey("coordinates_csv")) {
+	    data = data.concat(
+                getFileChannel( 
+                      params.data.coordinates_csv.file_paths,
+                      params.data.coordinates_csv.suffix,
+                      'NULL'
+                 ).map {
+                     it -> tuple(it[0], it[1], "coordinates_csv", outputFileFormat, 'NULL')
+                }
+            )
+        }
         if(params.data.containsKey("seurat_rds")) {
             data = data.concat(
                 getFileChannel( 

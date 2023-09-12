@@ -26,7 +26,8 @@ in_formats = [
     '10x_cellranger_mex',
     '10x_cellranger_h5',
     '10x_spaceranger_visium',
-    'spatial_csv'
+    'spatial_csv',
+    'coordinates_csv',
     'tsv',
     'csv'
 ]
@@ -136,6 +137,15 @@ parser.add_argument(
     help="Real number to scale 'X_spatial' to for SCope. Set to 0 for no scaling."
 )
 
+parser.add_argument(
+    "--binsize",
+    action="store",  # optional because action defaults to "store"
+    dest="binsize",
+    type=float,
+    default=200,
+    help="Bin size for collating transcripts into grid"
+)
+
 
 args = parser.parse_args()
 
@@ -144,6 +154,13 @@ FILE_PATH_IN = args.input
 FILE_PATH_OUT_BASENAME = os.path.splitext(args.output.name)[0]
 INPUT_FORMAT = args.input_format
 OUTPUT_FORMAT = args.output_format
+BINSIZE = args.binsize
+
+
+def check_coordinates_csv_path(path):
+    # Sanity checks
+    if not os.path.exists(path):
+        raise Exception("VSN ERROR: File {} does not exist.".format(path))
 
 def check_spatial_csv_path(path):
     # Sanity checks
@@ -345,6 +362,66 @@ elif INPUT_FORMAT in ['tsv', 'csv'] and OUTPUT_FORMAT == 'h5ad':
     adata = adata[:, np.sort(adata.var.index)]
     adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
 
+elif INPUT_FORMAT == 'coordinates_csv' and OUTPUT_FORMAT == 'h5ad':
+    check_coordinates_csv_path(path=FILE_PATH_IN)
+
+    # read
+    print("Reading coordinates csv format...")
+    df = pd.read_csv(FILE_PATH_IN, sep=",")
+
+    needed_cols = ['x', 'y', 'gene']
+    for col in needed_cols:
+        if col not in df.columns:
+            raise Exception(f"VSN ERROR: File {FILE_PATH_IN} does not contain column {col}.")
+
+    # create grid
+    bins_x = list(range(0, (np.max(df['x']) + BINSIZE), BINSIZE))
+    bins_y = list(range(0, (np.max(df['y']) + BINSIZE), BINSIZE))
+
+    df['digi_spatial_x'] = np.digitize( df['x'], bins=bins_x)
+    df['digi_spatial_y'] = np.digitize( df['y'], bins=bins_y)
+    df['binid'] = [ "bin_" + str(x) + "_" + str(y) for x,y in zip(df['digi_spatial_x'], df['digi_spatial_y'])]
+
+    # get gene and bin names
+    gene_names = np.unique(df['gene'])
+    bin_names = np.unique(df['binid'])
+
+    # create annadata
+    adata = ann.AnnData( pd.crosstab(df['binid'], df['gene']) )
+
+    # add 'X_spatial'
+    # get bin coordinates 
+    xcoords = [ bins_x[ int(binid.split('_')[1])] for binid in adata.obs_names ]
+    ycoords = [ bins_y[ int(binid.split('_')[2])] for binid in adata.obs_names ]
+    adata.obsm['X_spatial'] = np.array([xcoords, ycoords], dtype=np.float32).T
+
+    # assign 'Gene' and 'CellID' 
+    adata.var["Gene"] = adata.var_names
+    adata.obs["CellID"] = adata.obs_names
+
+    # center data for SCope
+    avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
+    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
+    # scale data for SCope, default of 20 such that X axis is between [-10,10]
+    if args.spatial_scale > 0:
+        scfactor = args.spatial_scale / (np.max(adata.obsm['X_spatial'][:,0])-np.min(adata.obsm['X_spatial'][:,0]))
+    else:
+        scfactor = 1
+    adata.obsm['X_spatial'] = adata.obsm['X_spatial'] * scfactor
+
+    # Convert to sparse matrix
+    adata.X = csr_matrix(adata.X)
+    # Add additional information
+    adata = update_obs(adata=adata, args=args)
+    # Add/update additional information to features (var)
+    adata = update_var(adata=adata, args=args)
+    # Sort var index
+    adata = adata[:, np.sort(adata.var.index)]
+
+    print("Writing spatial data to h5ad...")
+    adata.write_h5ad(filename="{}.h5ad".format(FILE_PATH_OUT_BASENAME))
+    
+    
 elif INPUT_FORMAT == 'spatial_csv' and OUTPUT_FORMAT == 'h5ad':
     check_spatial_csv_path(path=FILE_PATH_IN)
     # Convert
