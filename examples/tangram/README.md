@@ -240,5 +240,7 @@ Input data should be already filtered AnnData in that case containing an `.obsm[
 
 Tangram workflows generate:
 - AnnData objects containing the projected labels e.g. `out/data/A1.TANGRAM_CELLTYPES.h5ad` and mapping `out/data/A1.TANGRAM_MAPPING.h5ad`
+-- cell type specific mapping scores for each label are saved as `n_tangram_`  + label in `.obs` of the AnnData object, e.g. `.obs['n_tangram_ITGL23']` 
+-- label assignments are stored as `.obs['tagram_best_']` + annotation by highest mapping score and by quantile, e.g. `.obs['tangram_best_BRAIN_cell_type']` and `.obs['tangram_q0.95_BRAIN_cell_type']` 
 - SCope compatible Loom files e.g. `out/data/A1.TANGRAM_CELLTYPES_scope.loom`
 - reports e.g. `out/notebooks/A1.TANGRAM_report.html`
