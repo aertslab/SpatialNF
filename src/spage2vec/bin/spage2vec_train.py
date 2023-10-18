@@ -2,6 +2,7 @@
 
 import argparse
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import datetime
 import pandas as pd
 import scanpy as sc
@@ -191,8 +192,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID";
-os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu_id)
+#os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID";
+#os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu_id)
 
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
@@ -276,6 +277,7 @@ sample_ids = df.sample_id.unique()
 # Create anndata object
 adata = AnnData(np.array(features), obs=df)
 adata.obsm["spatial"] = df.loc[:,['x','y','z']].values
+adata.var_names = gene_list
 
 # Compute spatial graph
 if args.neigh_perc is not None:

@@ -52,12 +52,15 @@ try:
 except IOError:
     raise Exception("Wrong input format. Expects .h5ad files, got .{}".format(os.path.splitext(FILE_PATH_IN)[0]))
 
+print("Nearest neighbor search...")
+
 kdT = KDTree(adata.obsm["spage2vec"])
-res = kdT.query(adata.obsm["spage2vec"], k=args.n_neigh, n_jobs=args.n_cpus)
+res = kdT.query(adata.obsm["spage2vec"], k=args.n_neigh, workers=args.n_cpus)
 
 spot_geneID = adata.obs.gene.values
-gene_list = adata.obs.gene.unique()
+gene_list = adata.var_names
 
+#df_pc_exp = pd.DataFrame(np.zeros((len(res[1]), len(adata.var_names.values))), columns=adata.var_names.values)
 df_pc_exp = pd.DataFrame(np.zeros((len(res[1]), len(gene_list))), columns=gene_list)
 col_idx_d = dict(zip(gene_list, np.arange(gene_list.shape[0])))
 for spot in range(len(res[1])):

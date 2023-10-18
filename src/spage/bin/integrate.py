@@ -77,11 +77,16 @@ FILE_PATH_OUT_SC_BASENAME = os.path.splitext(args.output_sc.name)[0]
 # Expects h5ad file
 try:
     ad_spatial = sc.read_h5ad(filename=FILE_PATH_SPATIAL.name)
+    if ad_spatial.X.min() < 0:
+        # Data are probably scaled
+        ad_spatial.X = ad_spatial.raw.to_adata().X
+    print(ad_spatial)
 except IOError:
     raise Exception("Wrong input format. Expects .h5ad files, got .{}".format(os.path.splitext(FILE_PATH_SPATIAL)[0]))
 
 try:
     ad_sc = sc.read_h5ad(filename=FILE_PATH_SC.name)
+    print(ad_sc)
 except IOError:
     raise Exception("Wrong input format. Expects .h5ad files, got .{}".format(os.path.splitext(FILE_PATH_SC)[0]))
 
@@ -104,7 +109,7 @@ df_sc = pd.DataFrame(st.zscore(df_sc.values), index=df_sc.index, columns=df_sc.c
 
 # Subset sn/scRNA-seq expression matrix on genes shared with spatial data
 Common_data = df_sc[np.intersect1d(df_spatial.columns, df_sc.columns)]
-
+print(Common_data)
 # Compute shared latent space
 pv_FISH_RNA = PVComputation(
         n_factors = n_pv,
@@ -112,7 +117,7 @@ pv_FISH_RNA = PVComputation(
         dim_reduction = 'pca',
         dim_reduction_target = 'pca'
 )
-pv_FISH_RNA.fit(Common_data, df_spatial[Common_data.columns])
+pv_FISH_RNA.fit(Common_data.values, df_spatial[Common_data.columns].values)
 
 S = pv_FISH_RNA.source_components_.T
 

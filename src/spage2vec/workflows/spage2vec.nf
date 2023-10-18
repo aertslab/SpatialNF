@@ -21,7 +21,7 @@ include {
 
 
 
-workflow RUN_SPAGE2VEC {
+workflow RUN__MULTISAMPLE_SPAGE2VEC {
     take:
         data
     main:
@@ -35,6 +35,16 @@ workflow RUN_SPAGE2VEC {
         )
 
         spage2vec_out = SPAGE2VEC__TRAINING(concatenated)
+    emit:
+        spage2vec_out
+}
+
+workflow RUN__SINGLESAMPLE_SPAGE2VEC {
+    take:
+        data
+    main:
+        out = READ_COORD_CONVERTER(data)
+        spage2vec_out = SPAGE2VEC__TRAINING(out)
     emit:
         spage2vec_out
 }

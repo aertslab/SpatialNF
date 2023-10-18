@@ -9,8 +9,7 @@ process DATA_INTEGRATION {
     label 'compute_resources__cpu'
 
     input:
-        tuple val(sampleId), path(f1)
-        path(f2)
+        tuple val(sampleId), path(f1), path(f2)
     output:
         tuple val(sampleId), \
             path("${sampleId}.DATA_INTEGRATION_SPATIAL.${processParams.off}"), \

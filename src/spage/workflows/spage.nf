@@ -24,15 +24,18 @@ include {
     GENE_IMPUTATION;
 } from '../processes/gene_imputation.nf' params(params)
 
+include {
+    MARKER_GENES;
+} from '../processes/marker_genes.nf' params(params)
+
 //////////////////////////////////////////////////////
 
 workflow SPAGE__DATA_INTEGRATION {
 
     take:
-        spatial_data
-        sc_data
+        data
     main:
-        data = DATA_INTEGRATION( spatial_data, sc_data )
+        data = DATA_INTEGRATION( data )
         knn = KNN_IMPUTATION( data )
     emit:
         data
@@ -46,9 +49,14 @@ workflow SPAGE__LABEL_TRANSFER {
         knn_data
     main:
         LABEL_TRANSFER( data.join(knn_data) )
+        MARKER_GENES(LABEL_TRANSFER.out.map {
+                // if stashedParams not there, just put null 3rd arg
+                it -> tuple(it[0], it[1], it.size() > 2 ? it[2]: null)
+            }
+        )
 
         PUBLISH_H5AD_LABEL_TRANSFER(
-            LABEL_TRANSFER.out.map {
+            MARKER_GENES.out.map {
                 // if stashedParams not there, just put null 3rd arg
                 it -> tuple(it[0], it[1], it.size() > 2 ? it[2]: null)
             },
@@ -58,7 +66,7 @@ workflow SPAGE__LABEL_TRANSFER {
             false
         )
     emit:
-        LABEL_TRANSFER.out
+        MARKER_GENES.out
 }
 
 workflow SPAGE__GENE_IMPUTATION {

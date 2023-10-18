@@ -6,7 +6,7 @@ process PSEUDO_CELLS {
 
     container params.tools.spage2vec.container
     publishDir "${params.global.outdir}/data/intermediate", mode: 'symlink'
-    label 'compute_resources__gpu'
+    label 'compute_resources__cpu'
 
     input:
         tuple val(sampleId), path(f)

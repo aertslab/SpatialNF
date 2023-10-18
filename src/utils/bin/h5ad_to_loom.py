@@ -85,6 +85,13 @@ parser.add_argument(
     help='Threshold on the false discovery rate (FDR) for the markers to not to be saved in the loom.'
 )
 
+parser.add_argument(
+    '--clustering-names',
+    type=str,
+    dest="clustering_names",
+    help='Names of additional (comma separated) cluster annotations to be saved in the loom.'
+)
+
 args = parser.parse_args()
 
 SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY = "rank_genes_groups"
@@ -308,67 +315,81 @@ col_attrs_embeddings = {
 col_attrs = {**col_attrs, **col_attrs_embeddings}
 
 # CLUSTERINGS
-
+clustering_names = []
 clusterings = pd.DataFrame(
     index=CELL_IDS
 )
 attrs_metadata["clusterings"] = []
 
-for adata_idx in range(0, len(FILE_PATHS_IN)):
+if args.clustering_names:
+    clustering_names = [SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY] + ['rank_genes_groups_' +  x for x in args.clustering_names.split(",")]
+else:
+    clustering_names = [SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]
 
-    # Only add clustering information if rank_genes_group has been computed
+for cl_idx, cl in enumerate(clustering_names):
+    for adata_idx in range(0, len(FILE_PATHS_IN)):
 
-    if SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY not in adatas[adata_idx].uns:
-        continue
+        # Only add clustering information if rank_genes_group has been computed
+        if cl not in adatas[adata_idx].uns:
+            continue
 
-    clustering_id = adata_idx
-    clustering_algorithm = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]["params"]["groupby"]
+        clustering_id = adata_idx + cl_idx
+        clustering_algorithm = adatas[adata_idx].uns[cl]["params"]["groupby"]
 
-    # Check if from AnnData 0.7.x
-    if isinstance(clustering_algorithm, np.ndarray):
-        if len(clustering_algorithm) > 1:
-            raise Exception("VSN ERROR: Currently there is no support for conversion of h5ad containing multiple clusterings.")
+        # Check if from AnnData 0.7.x
+        if isinstance(clustering_algorithm, np.ndarray):
+            if len(clustering_algorithm) > 1:
+                raise Exception("VSN ERROR: Currently there is no support for conversion of h5ad containing multiple clusterings.")
+            else:
+                clustering_algorithm = clustering_algorithm[0]
+        clustering_resolution = adatas[adata_idx].uns[clustering_algorithm]["params"]["resolution"] if (clustering_algorithm=='louvain') | (clustering_algorithm=='leiden') else 0
+        cluster_marker_method = adatas[adata_idx].uns[cl]["params"]["method"]
+
+        # Check if from AnnData 0.7.x
+        if isinstance(cluster_marker_method, np.ndarray):
+            if len(cluster_marker_method) > 1:
+                raise Exception("VSN ERROR: Currently there is no support for conversion of h5ad containing multiple differential expression results.")
+            else:
+                cluster_marker_method = cluster_marker_method[0]
+   
+        # Data
+        if (clustering_algorithm=='louvain') | (clustering_algorithm=='leiden'):
+            clusters = np.unique(adatas[adata_idx].obs[clustering_algorithm])
+            num_clusters = len(clusters)
+            annotations_map = dict(zip(np.arange(num_clusters), clusters))
+            clusterings[str(clustering_id)] = adatas[adata_idx].obs[clustering_algorithm].values.astype(np.int64)
         else:
-            clustering_algorithm = clustering_algorithm[0]
-    clustering_resolution = adatas[adata_idx].uns[clustering_algorithm]["params"]["resolution"]
-    cluster_marker_method = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]["params"]["method"]
+            cluster_annotations = np.unique(adatas[adata_idx].obs[clustering_algorithm].values)
+            num_clusters = len(cluster_annotations)
+            annotations_map = dict(zip(np.arange(num_clusters), cluster_annotations))
+            annotations_map_inv = dict(zip(cluster_annotations, np.arange(num_clusters)))
+            clusterings[str(clustering_id)] = adatas[adata_idx].obs[clustering_algorithm].map(annotations_map_inv).values.astype(np.int64)
+    
+       # Metadata
+        attrs_metadata["clusterings"] = attrs_metadata["clusterings"] + [{
+            "id": clustering_id,
+            "group": clustering_algorithm.capitalize(),
+            "name": f"{clustering_algorithm.capitalize()} resolution {clustering_resolution}",
+            "clusters": [],
+            "clusterMarkerMetrics": [
+                {
+                    "accessor": "avg_logFC",
+                    "name": "Avg. logFC",
+                    "description": f"Average log fold change from {cluster_marker_method.capitalize()} test"
+                }, {
+                    "accessor": "pval",
+                    "name": "Adjusted P-Value",
+                    "description": f"Adjusted P-Value from {cluster_marker_method.capitalize()} test"
+                }
+            ]
+        }]
 
-    # Check if from AnnData 0.7.x
-    if isinstance(cluster_marker_method, np.ndarray):
-        if len(cluster_marker_method) > 1:
-            raise Exception("VSN ERROR: Currently there is no support for conversion of h5ad containing multiple differential expression results.")
-        else:
-            cluster_marker_method = cluster_marker_method[0]
-    num_clusters = len(np.unique(adatas[adata_idx].obs[clustering_algorithm]))
-
-    # Data
-    clusterings[str(clustering_id)] = adatas[adata_idx].obs[clustering_algorithm].values.astype(np.int64)
-
-    # Metadata
-    attrs_metadata["clusterings"] = attrs_metadata["clusterings"] + [{
-        "id": clustering_id,
-        "group": clustering_algorithm.capitalize(),
-        "name": f"{clustering_algorithm.capitalize()} resolution {clustering_resolution}",
-        "clusters": [],
-        "clusterMarkerMetrics": [
-            {
-                "accessor": "avg_logFC",
-                "name": "Avg. logFC",
-                "description": f"Average log fold change from {cluster_marker_method.capitalize()} test"
-            }, {
-                "accessor": "pval",
-                "name": "Adjusted P-Value",
-                "description": f"Adjusted P-Value from {cluster_marker_method.capitalize()} test"
-            }
-        ]
-    }]
-
-    for i in range(0, num_clusters):
-        cluster = {}
-        cluster['id'] = i
-        cluster['description'] = f'Unannotated Cluster {i}'
-        attrs_metadata['clusterings'][clustering_id]['clusters'].append(cluster)
-
+        for i in range(num_clusters):
+            cluster = {}
+            cluster['id'] = i
+            cluster['description'] = f'Unannotated Cluster {annotations_map[i]}' if (clustering_algorithm=='louvain') | (clustering_algorithm=='leiden') else annotations_map[i]
+            attrs_metadata['clusterings'][clustering_id]['clusters'].append(cluster)
+   
 # Update column attribute Dict
 col_attrs_clusterings = {
     "ClusterID": clusterings["0"].values,  # Pick the first one as default clustering (this is purely arbitrary)
@@ -385,98 +406,98 @@ row_attrs = {
 }
 
 # CLUSTER MARKERS
+for cl_idx, cl in enumerate(clustering_names):
+    for adata_idx in range(0, len(FILE_PATHS_IN)):
 
-for adata_idx in range(0, len(FILE_PATHS_IN)):
+        if cl not in adatas[adata_idx].uns:
+            continue
 
-    if SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY not in adatas[adata_idx].uns:
-        continue
+        clustering_id = attrs_metadata['clusterings'][adata_idx+cl_idx]["id"]
 
-    clustering_id = attrs_metadata['clusterings'][adata_idx]["id"]
-    num_clusters = len(attrs_metadata['clusterings'][adata_idx]["clusters"])
+        clusters = np.unique(adatas[adata_idx].obs[attrs_metadata["clusterings"][adata_idx+cl_idx]['group'].lower()].values)
+        # Initialize
+        cluster_markers = pd.DataFrame(
+            index=raw_filtered_adata.var.index,
+            columns=[str(x) for x in clusters]
+        ).fillna(0, inplace=False)
+        cluster_markers_avg_logfc = pd.DataFrame(
+            index=raw_filtered_adata.var.index,
+            columns=[str(x) for x in clusters]
+        ).fillna(0, inplace=False)
+        cluster_markers_pval = pd.DataFrame(
+            index=raw_filtered_adata.var.index,
+            columns=[str(x) for x in clusters]
+        ).fillna(0, inplace=False)
 
-    # Initialize
-    cluster_markers = pd.DataFrame(
-        index=raw_filtered_adata.var.index,
-        columns=[str(x) for x in np.arange(num_clusters)]
-    ).fillna(0, inplace=False)
-    cluster_markers_avg_logfc = pd.DataFrame(
-        index=raw_filtered_adata.var.index,
-        columns=[str(x) for x in np.arange(num_clusters)]
-    ).fillna(0, inplace=False)
-    cluster_markers_pval = pd.DataFrame(
-        index=raw_filtered_adata.var.index,
-        columns=[str(x) for x in np.arange(num_clusters)]
-    ).fillna(0, inplace=False)
-
-    # Populate
-    for i in range(0, num_clusters):
-        i = str(i)
-        gene_names = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['names'][i]
-        pvals_adj = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['pvals_adj'][i]
-        logfoldchanges = adatas[adata_idx].uns[SCANPY__CLUSTER_MARKER_DATA__ANNDATA_UNS_KEY]['logfoldchanges'][i]
-        num_genes = len(gene_names)
-        sig_genes_mask = pvals_adj < args.markers_fdr_threshold
-        deg_genes_mask = np.logical_and(
-            np.logical_or(
-                logfoldchanges >= args.markers_log_fc_threshold,
-                logfoldchanges <= -args.markers_log_fc_threshold
-            ),
-            np.isfinite(
-                logfoldchanges
+        # Populate
+        for i in clusters:
+            i = str(i)
+            gene_names = adatas[adata_idx].uns[cl]['names'][i]
+            pvals_adj = adatas[adata_idx].uns[cl]['pvals_adj'][i]
+            logfoldchanges = adatas[adata_idx].uns[cl]['logfoldchanges'][i]
+            num_genes = len(gene_names)
+            sig_genes_mask = pvals_adj < args.markers_fdr_threshold
+            deg_genes_mask = np.logical_and(
+                np.logical_or(
+                    logfoldchanges >= args.markers_log_fc_threshold,
+                    logfoldchanges <= -args.markers_log_fc_threshold
+                ),
+                np.isfinite(
+                    logfoldchanges
+                )
             )
-        )
-        sig_and_deg_genes_mask = np.logical_and(
-            sig_genes_mask,
-            deg_genes_mask
-        )
-        marker_names = gene_names[sig_and_deg_genes_mask]
+            sig_and_deg_genes_mask = np.logical_and(
+                sig_genes_mask,
+                deg_genes_mask
+            )
+            marker_names = gene_names[sig_and_deg_genes_mask]
+   
+            marker_genes_along_raw_adata_mask = np.in1d(
+                raw_filtered_adata.var.index,
+                marker_names
+            )
+            marker_genes_along_raw_adata = cluster_markers.index[marker_genes_along_raw_adata_mask]
+  
+            # Populate the marker mask
+            markers_df = pd.DataFrame(
+                1,
+                index=marker_names,
+                columns=["is_marker"]
+            )
+            cluster_markers.loc[
+                marker_genes_along_raw_adata_mask,
+                i
+            ] = markers_df["is_marker"][marker_genes_along_raw_adata]
+   
+            # Populate the marker gene log fold changes
+            logfoldchanges_df = pd.DataFrame(
+                logfoldchanges[sig_and_deg_genes_mask],
+                index=marker_names,
+                columns=["logfc"]
+            )
+            cluster_markers_avg_logfc.loc[
+                marker_genes_along_raw_adata_mask,
+                i
+            ] = logfoldchanges_df["logfc"][marker_genes_along_raw_adata]
+    
+            # Populate the marker gene false discovery rates
+            pvals_adj_df = pd.DataFrame(
+                pvals_adj[sig_and_deg_genes_mask],
+                index=marker_names,
+                columns=["fdr"]
+            )
+            cluster_markers_pval.loc[
+                marker_genes_along_raw_adata_mask,
+                i
+            ] = pvals_adj_df["fdr"][marker_genes_along_raw_adata]
 
-        marker_genes_along_raw_adata_mask = np.in1d(
-            raw_filtered_adata.var.index,
-            marker_names
-        )
-        marker_genes_along_raw_adata = cluster_markers.index[marker_genes_along_raw_adata_mask]
-
-        # Populate the marker mask
-        markers_df = pd.DataFrame(
-            1,
-            index=marker_names,
-            columns=["is_marker"]
-        )
-        cluster_markers.loc[
-            marker_genes_along_raw_adata_mask,
-            i
-        ] = markers_df["is_marker"][marker_genes_along_raw_adata]
-
-        # Populate the marker gene log fold changes
-        logfoldchanges_df = pd.DataFrame(
-            logfoldchanges[sig_and_deg_genes_mask],
-            index=marker_names,
-            columns=["logfc"]
-        )
-        cluster_markers_avg_logfc.loc[
-            marker_genes_along_raw_adata_mask,
-            i
-        ] = logfoldchanges_df["logfc"][marker_genes_along_raw_adata]
-
-        # Populate the marker gene false discovery rates
-        pvals_adj_df = pd.DataFrame(
-            pvals_adj[sig_and_deg_genes_mask],
-            index=marker_names,
-            columns=["fdr"]
-        )
-        cluster_markers_pval.loc[
-            marker_genes_along_raw_adata_mask,
-            i
-        ] = pvals_adj_df["fdr"][marker_genes_along_raw_adata]
-
-    # Update row attribute Dict
-    row_attrs_cluster_markers = {
-        f"ClusterMarkers_{str(clustering_id)}": df_to_named_matrix(cluster_markers),
-        f"ClusterMarkers_{str(clustering_id)}_avg_logFC": df_to_named_matrix(cluster_markers_avg_logfc),
-        f"ClusterMarkers_{str(clustering_id)}_pval": df_to_named_matrix(cluster_markers_pval)
-    }
-    row_attrs = {**row_attrs, **row_attrs_cluster_markers}
+        # Update row attribute Dict
+        row_attrs_cluster_markers = {
+            f"ClusterMarkers_{str(clustering_id)}": df_to_named_matrix(cluster_markers),
+            f"ClusterMarkers_{str(clustering_id)}_avg_logFC": df_to_named_matrix(cluster_markers_avg_logfc),
+            f"ClusterMarkers_{str(clustering_id)}_pval": df_to_named_matrix(cluster_markers_pval)
+        }
+        row_attrs = {**row_attrs, **row_attrs_cluster_markers}
 
 # Update global attribute Dict
 attrs["MetaData"] = json.dumps(attrs_metadata)

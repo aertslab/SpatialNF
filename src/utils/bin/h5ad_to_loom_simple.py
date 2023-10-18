@@ -150,7 +150,7 @@ col_attrs = {
 
 attrs_metadata["metrics"] = []
 attrs_metadata["annotations"] = []
-
+attrs_metadata["embeddings"] = []
 
 ANNOTATION_MAX_UNIQUE_VALUES = 1024
 
