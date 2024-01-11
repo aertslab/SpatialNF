@@ -53,6 +53,13 @@ parser.add_argument(
     help="Annotation for selecting from marker genes (default: '%(default)s')"
 )
 
+parser.add_argument(
+    "--use-raw",
+    dest='use_raw',
+    choices=['true', 'false'],
+    default='true',
+    help="Project gene expression from adata.raw.X"
+)
 
 args = parser.parse_args()
 
@@ -88,6 +95,9 @@ except IOError:
 dict_genename = {}
 for g in adata_ref.var.index:
     dict_genename[g.lower()] = g
+
+if args.use_raw == 'true':
+    adata_ref = adata_ref.raw.to_adata()
 
 # get mappings
 ad_ge = tg.project_genes(adata_map, adata_ref)
