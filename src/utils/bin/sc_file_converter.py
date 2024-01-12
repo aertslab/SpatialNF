@@ -146,6 +146,21 @@ parser.add_argument(
     help="Bin size for collating transcripts into grid"
 )
 
+parser.add_argument(
+    "--flipx",
+    dest='flipx',
+    choices=['true', 'false'],
+    default='true',
+    help="Set x coordinates in X_spatial to -x."
+)
+parser.add_argument(
+    "--flipy",
+    dest='flipy',
+    choices=['true', 'false'],
+    default='true',
+    help="Set y coordinates in X_spatial to -y."
+)
+
 
 args = parser.parse_args()
 
@@ -399,6 +414,12 @@ elif INPUT_FORMAT == 'coordinates_csv' and OUTPUT_FORMAT == 'h5ad':
     adata.var["Gene"] = adata.var_names
     adata.obs["CellID"] = adata.obs_names
 
+    # flip spatial coordinates
+    if args.flipx == 'true':
+        adata.obsm['X_spatial'][:,0] = -adata.obsm['X_spatial'][:,0]
+    if args.flipy == 'true':
+        adata.obsm['X_spatial'][:,1] = -adata.obsm['X_spatial'][:,1]
+        
     # center data for SCope
     avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
@@ -447,6 +468,13 @@ elif INPUT_FORMAT == 'spatial_csv' and OUTPUT_FORMAT == 'h5ad':
     adata.obsm['spatial'] = coords_df.values
     # convert spatial coords into float
     adata.obsm['X_spatial'] = np.float32(adata.obsm['spatial'])[:,:2]
+
+    # flip spatial coordinates
+    if args.flipx == 'true':
+        adata.obsm['X_spatial'][:,0] = -adata.obsm['X_spatial'][:,0]
+    if args.flipy == 'true':
+        adata.obsm['X_spatial'][:,1] = -adata.obsm['X_spatial'][:,1]
+    
     # center data for SCope
     avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords
@@ -514,6 +542,12 @@ elif INPUT_FORMAT == '10x_spaceranger_visium' and OUTPUT_FORMAT == 'h5ad':
     # Sort var index
     adata = adata[:, np.sort(adata.var.index)]
 
+    # flip spatial coordinates
+    if args.flipx == 'true':
+        adata.obsm['X_spatial'][:,0] = -adata.obsm['X_spatial'][:,0]
+    if args.flipy == 'true':
+        adata.obsm['X_spatial'][:,1] = -adata.obsm['X_spatial'][:,1]
+            
     # center data for SCope
     avg_coords = adata.obsm['X_spatial'].sum(axis=0)/adata.obsm['X_spatial'].shape[0]
     adata.obsm['X_spatial'] = adata.obsm['X_spatial'] - avg_coords

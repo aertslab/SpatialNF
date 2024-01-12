@@ -111,6 +111,8 @@ def runPythonConverter = {
             ${processParams?.tagCellWithSampleId ? '--tag-cell-with-sample-id '+ processParams.tagCellWithSampleId : ''} \
             ${processParams?.remove10xGEMWell ? '--remove-10x-gem-well '+ processParams.remove10xGEMWell : ''} \
 	    ${processParams?.scaleSpatial ? '--scale-spatial '+ processParams.scaleSpatial : ''} \
+	    ${processParams?.flipx ? '--flipx '+ processParams.flipx : ''} \
+	    ${processParams?.flipy ? '--flipy '+ processParams.flipy : ''} \
             ${processParams?.useRaw ? '--use-raw '+ processParams.useRaw : ''} \
 	    ${processParams?.binsize ? '--binsize '+ processParams.binsize : ''} \
             --input-format $inputDataType \
