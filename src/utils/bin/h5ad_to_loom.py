@@ -259,20 +259,31 @@ embeddings_y = pd.DataFrame(
     index=CELL_IDS
 )
 
-if 'X_umap' in adata.obsm.keys():
-    default_embedding["_X"] = adata.obsm['X_umap'][:, 0]
-    default_embedding["_Y"] = adata.obsm['X_umap'][:, 1]
-
-    embeddings_x["-1"] = adata.obsm['X_umap'][:, 0]
-    embeddings_y["-1"] = adata.obsm['X_umap'][:, 1]
-
+# set spatial as default embedding 
+if 'X_spatial' in adata.obsm.keys():
+    embedding_id = -1
+    default_embedding["_X"] = adata.obsm['X_spatial'][:, 0]
+    default_embedding["_Y"] = adata.obsm['X_spatial'][:, 1]
+    embeddings_x[str(embedding_id)] = adata.obsm['X_spatial'][:, 0]
+    embeddings_y[str(embedding_id)] = adata.obsm['X_spatial'][:, 1]
     attrs_metadata['embeddings'] = [
         {
-            "id": -1,
-            "name": f"HVG UMAP"
+            "id": embedding_id,
+            "name": f"Spatial"
         }
     ]
 
+if 'X_umap' in adata.obsm.keys():
+    embedding_id = embeddings_x.shape[1] - 1
+    embeddings_x[str(embedding_id)] = adata.obsm['X_umap'][:, 0]
+    embeddings_y[str(embedding_id)] = adata.obsm['X_umap'][:, 1]
+    attrs_metadata['embeddings'].append(
+        {
+            "id": embedding_id,
+            "name": f"HVG UMAP"
+        }
+    )
+    
 if 'X_tsne' in adata.obsm.keys():
     embedding_id = embeddings_x.shape[1] - 1
     embeddings_x[str(embedding_id)] = adata.obsm['X_tsne'][:, 0]
@@ -295,16 +306,20 @@ if 'X_pca' in adata.obsm.keys():
         }
     )
 
-if 'X_spatial' in adata.obsm.keys():
-    embedding_id = embeddings_x.shape[1] - 1
-    embeddings_x[str(embedding_id)] = adata.obsm['X_spatial'][:, 0]
-    embeddings_y[str(embedding_id)] = adata.obsm['X_spatial'][:, 1]
-    attrs_metadata['embeddings'].append(
-        {
-            "id": embedding_id,
-            "name": f"Spatial"
-        }
-    )
+# all other embeddings
+for key in adata.obsm.keys():
+    if key.startswith('X_'):
+        if key not in ['X_umap', 'X_tsne', 'X_pca', 'X_spatial']:
+            embedding_id = embeddings_x.shape[1] - 1
+            embeddings_x[str(embedding_id)] = adata.obsm[key][:, 0]
+            embeddings_y[str(embedding_id)] = adata.obsm[key][:, 1]
+            attrs_metadata['embeddings'].append(
+                {
+                    "id": embedding_id,
+                    "name": key
+                }
+            )
+
 
 # Update column attribute Dict
 col_attrs_embeddings = {
